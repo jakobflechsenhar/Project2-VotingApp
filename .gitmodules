@@ -1,3 +1,6 @@
 [submodule "existing-code-repo"]
 	path = existing-code-repo
 	url = https://github.com/jakobflechsenhar/Project1-CodeRepository.git
+
+# this file specifies that one of the folders in this directory (the existing-code-repo) is itself a cloned repo from my Github account
+# this is because the actual code for the voting app is the same as in project 1
