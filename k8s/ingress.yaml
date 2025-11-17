@@ -1,0 +1,33 @@
+#--------------------------------------------------------#
+# Ingress Controller
+#--------------------------------------------------------#
+# Ingress controller routes external HTTP traffic to internal services in the jakob namespace
+# Maps /vote/* requests to vote service and /result/* to result service on port 80
+# Requires NGINX ingress controller to be installed in the cluster (acts as reverse proxy)
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jakob-ingress
+  namespace: jakob
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /vote
+        pathType: Prefix
+        backend:
+          service:
+            name: jakob-service-vote
+            port:
+              number: 80
+      - path: /result
+        pathType: Prefix
+        backend:
+          service:
+            name: jakob-service-result
+            port:
+              number: 80

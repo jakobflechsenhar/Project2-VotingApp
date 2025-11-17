@@ -1,0 +1,64 @@
+#--------------------------------------------------------#
+# Kubernetes Deployment: Result App
+#--------------------------------------------------------#
+# Result app displays voting results by reading from PostgreSQL database.
+# Deployment connects to PostgreSQL using credentials that match the database setup
+# Service exposes the result UI internally on port 80 for ingress/load balancer access
+
+# Result App Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jakob-deployment-result
+  namespace: jakob
+spec:
+  replicas: 1      # Single instance (stateless frontend) since we're on a shared cluster with limited resources (Stateless frontend: doesn't store any user data between requests and each request is independent)
+  selector:
+    matchLabels:
+      app: jakob-result
+      owner: jakob
+  template:
+    metadata:
+      labels:
+        app: jakob-result
+        owner: jakob
+    spec:
+      containers:
+      - name: result
+        image: jakobflechsenhar/result:latest  # Your Docker Hub image
+        ports:
+        - containerPort: 80             # Result UI serves on port 80
+        env:
+        - name: POSTGRES_HOST
+          value: jakob-service-postgres # PostgreSQL service name
+        - name: POSTGRES_PORT
+          value: "5432"                 # PostgreSQL port (string)
+        - name: POSTGRES_DB
+          value: votes                  # Database name (must match PostgreSQL)
+        - name: POSTGRES_USER
+          value: votes_user             # DB username (must match PostgreSQL)
+        - name: POSTGRES_PASSWORD
+          value: votes_password         # DB password (must match PostgreSQL)
+        resources:
+          requests:
+            memory: "128Mi"             # Minimum memory
+            cpu: "100m"                 # Minimum CPU (0.1 core)
+          limits:
+            memory: "256Mi"             # Maximum memory
+            cpu: "200m"                 # Maximum CPU (0.2 core)
+---
+# Result Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: jakob-service-result
+  namespace: jakob
+spec:
+  type: ClusterIP             # Internal cluster access only
+  selector:
+    app: jakob-result
+    owner: jakob
+  ports:
+  - port: 80                  # Service port
+    targetPort: 80            # Container port
+    protocol: TCP
