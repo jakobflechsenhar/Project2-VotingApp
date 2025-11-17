@@ -13,8 +13,9 @@ on:
 
 env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-  AWS_REGION: us-west-1              # Change to your region
-  EKS_CLUSTER_NAME: ironhack-main-2  # Change to your cluster name
+  AWS_REGION: us-west-1
+  EKS_CLUSTER_NAME: ironhack-main-2
+  NAMESPACE: jakob
 
 jobs:
   build-and-deploy:
@@ -24,14 +25,14 @@ jobs:
     # Checkout code from repository
     - name: Checkout code
       uses: actions/checkout@v3
-
+    
     # Login to Docker Hub
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
+    
     # Build and push Vote service image
     - name: Build and push Vote image
       uses: docker/build-push-action@v4
@@ -39,9 +40,9 @@ jobs:
         context: ./vote
         push: true
         tags: |
-          ${{ env.DOCKER_HUB_USERNAME }}/voting-app-vote:${{ github.sha }}
-          ${{ env.DOCKER_HUB_USERNAME }}/voting-app-vote:latest
-
+          ${{ env.DOCKER_HUB_USERNAME }}/vote:${{ github.sha }}
+          ${{ env.DOCKER_HUB_USERNAME }}/vote:latest
+    
     # Build and push Result service image
     - name: Build and push Result image
       uses: docker/build-push-action@v4
@@ -49,9 +50,9 @@ jobs:
         context: ./result
         push: true
         tags: |
-          ${{ env.DOCKER_HUB_USERNAME }}/voting-app-result:${{ github.sha }}
-          ${{ env.DOCKER_HUB_USERNAME }}/voting-app-result:latest
-
+          ${{ env.DOCKER_HUB_USERNAME }}/result:${{ github.sha }}
+          ${{ env.DOCKER_HUB_USERNAME }}/result:latest
+    
     # Build and push Worker service image
     - name: Build and push Worker image
       uses: docker/build-push-action@v4
@@ -59,9 +60,9 @@ jobs:
         context: ./worker
         push: true
         tags: |
-          ${{ env.DOCKER_HUB_USERNAME }}/voting-app-worker:${{ github.sha }}
-          ${{ env.DOCKER_HUB_USERNAME }}/voting-app-worker:latest
-
+          ${{ env.DOCKER_HUB_USERNAME }}/worker:${{ github.sha }}
+          ${{ env.DOCKER_HUB_USERNAME }}/worker:latest
+    
     # Configure AWS credentials
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -69,45 +70,25 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
-
-    # Install kubectl
-    - name: Install kubectl
-      run: |
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        chmod +x kubectl
-        sudo mv kubectl /usr/local/bin/
-
-    # Install eksctl
-    - name: Install eksctl
-      run: |
-        curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-        sudo mv /tmp/eksctl /usr/local/bin
-
+    
     # Update kubeconfig for EKS
     - name: Update Kubeconfig
       run: |
-        eksctl utils write-kubeconfig --cluster ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
-
-    # Update Kubernetes manifests with new image tags
-    - name: Update image tags in manifests
-      run: |
-        # Update vote deployment
-        sed -i "s|image:.*voting-app-vote.*|image: ${{ env.DOCKER_HUB_USERNAME }}/voting-app-vote:${{ github.sha }}|g" k8s/04-vote-deployment.yaml
-        
-        # Update result deployment
-        sed -i "s|image:.*voting-app-result.*|image: ${{ env.DOCKER_HUB_USERNAME }}/voting-app-result:${{ github.sha }}|g" k8s/06-result-deployment.yaml
-        
-        # Update worker deployment
-        sed -i "s|image:.*voting-app-worker.*|image: ${{ env.DOCKER_HUB_USERNAME }}/voting-app-worker:${{ github.sha }}|g" k8s/08-worker-deployment.yaml
-
+        aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+    
     # Apply all Kubernetes manifests
     - name: Apply Kubernetes Manifests
       run: |
-        kubectl apply -f k8s/
-
+        kubectl apply -f k8s/ -n ${{ env.NAMESPACE }}
+    
     # Verify deployment
     - name: Verify Deployment
       run: |
-        kubectl get pods -n jakob
-        kubectl get services -n jakob
-        kubectl get ingress -n jakob
+        echo "Waiting for deployments to be ready..."
+        kubectl wait --for=condition=available --timeout=300s deployment --all -n ${{ env.NAMESPACE }}
+        echo "=== Pods ==="
+        kubectl get pods -n ${{ env.NAMESPACE }}
+        echo "=== Services ==="
+        kubectl get services -n ${{ env.NAMESPACE }}
+        echo "=== Ingress ==="
+        kubectl get ingress -n ${{ env.NAMESPACE }}
