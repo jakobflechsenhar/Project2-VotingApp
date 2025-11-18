@@ -36,9 +36,15 @@ spec:
         - name: POSTGRES_DB
           value: votes                  # Database name (must match PostgreSQL)
         - name: POSTGRES_USER
-          value: votes_user             # DB username (must match PostgreSQL)
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: POSTGRES_USER
         - name: POSTGRES_PASSWORD
-          value: votes_password         # DB password (must match PostgreSQL)
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: POSTGRES_PASSWORD
         resources:
           requests:
             memory: "128Mi"             # Minimum memory

@@ -1,11 +1,9 @@
 #--------------------------------------------------------#
-# Kubernetes Deployment: PostreSQL
+# Kubernetes Deployment: PostgreSQL
 #--------------------------------------------------------#
-
 # PersistentVolumeClaim (PVC) requests 5GB storage from the cluster for database persistence across pod restarts.
 # Deployment creates a PostgreSQL pod that runs PSQL version 15-Alpine, automatically creates a database named votes, creates a user named votes_user with password votes_password, and stores all data in persistent storage (survives pod restarts).
 # Service exposes PostgreSQL on port 5432 as 'jakob-service-postgres' for internal cluster access
-
 
 # PostgreSQL PVC
 apiVersion: v1
@@ -48,9 +46,17 @@ spec:
         - name: POSTGRES_DB
           value: votes                 # Database name
         - name: POSTGRES_USER
-          value: votes_user            # Database username
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: POSTGRES_USER
         - name: POSTGRES_PASSWORD
-          value: votes_password        # Database password
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: POSTGRES_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata  # Subdirectory to avoid mount point issues
         resources:
           requests:
             memory: "128Mi"            # Minimum memory
@@ -60,7 +66,7 @@ spec:
             cpu: "200m"                # Maximum CPU (0.2 core)
         volumeMounts:
         - name: pgdata
-          mountPath: /var/lib/postgresql/data  # PostgreSQL data directory
+          mountPath: /var/lib/postgresql/data   # PostgreSQL data directory
       volumes:
       - name: pgdata
         persistentVolumeClaim:
