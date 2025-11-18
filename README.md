@@ -37,10 +37,8 @@ A microservices-based voting application deployed on Amazon EKS with automated C
 │   └── workflows/
 │       └── ci-cd-pipeline.yaml    # GitHub Actions CI/CD pipeline
 ├── existing-code-repo/            # Original voting app source code (Diogo's code/images)
-│   ├── docker-compose.yml
-│   ├── result/
-│   ├── vote/
-│   └── worker/
+│   ├── ...
+│   ├── ...
 ├── k8s/                           # Kubernetes manifests
 │   ├── ingress.yaml               # NGINX routing rules
 │   ├── postgres-deployment.yaml   # PostgreSQL database + persistent storage
@@ -52,8 +50,9 @@ A microservices-based voting application deployed on Amazon EKS with automated C
 │   └── Dockerfile                # Container image for result service (created using the existing code in existing-code-repo)
 ├── vote/
 │   └── Dockerfile                # Container image for vote service (created using the existing code in existing-code-repo)
-└── worker/
-    └── Dockerfile                # Container image for worker service (created using the existing code in existing-code-repo)
+├── worker/
+│   └── Dockerfile                # Container image for worker service (created using the existing code in existing-code-repo)
+├── .gitmodules                   # specifies that the existing-code-repo folder is itself a cloned repo from my Github account
 ```
 
 
