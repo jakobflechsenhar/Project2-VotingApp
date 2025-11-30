@@ -1,10 +1,11 @@
-#--------------------------------------------------------#
+# ------------------------------------------------------ #
 # README: Voting App - Kubernetes Deployment with CI/CD
-#--------------------------------------------------------#
+# ------------------------------------------------------ #
+
 A microservices-based voting application deployed on Amazon EKS with automated CI/CD using GitHub Actions.
 
 
-# Architecture Overview
+## Architecture Overview
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │   Browser   │────▶│   NGINX     │────▶│  Vote App   │
@@ -30,7 +31,7 @@ A microservices-based voting application deployed on Amazon EKS with automated C
                                         └─────────────┘
 ```
 
-# Directory Structure
+## Directory Structure
 ```
 .
 ├── .github/
@@ -56,43 +57,43 @@ A microservices-based voting application deployed on Amazon EKS with automated C
 ```
 
 
-# Components
+## Components
 
-# 1. Vote App (Python Flask)
+#### 1. Vote App (Python Flask)
 - Purpose: Frontend for users to cast votes between two options
 - Port: 80
 - Replicas: 2 (load balanced)
 - Flow: Receives votes → Stores in Redis
 
-# 2. Redis (In-Memory Cache)
+#### 2. Redis (In-Memory Cache)
 - Purpose: Temporary storage for votes before processing
 - Port: 6379
 - Why Redis?: Fast, handles high-frequency writes efficiently
 
-# 3. Worker (.NET)
+#### 3. Worker (.NET)
 - Purpose: Background processor that moves votes from Redis to PostgreSQL
 - Flow: Reads from Redis → Processes → Writes to PostgreSQL
 - Note: No service needed (doesn't accept incoming traffic)
 
-# 4. PostgreSQL (Database)
+#### 4. PostgreSQL (Database)
 - Purpose: Permanent storage for processed votes
 - Port: 5432
 - Storage: 5GB persistent volume (survives pod restarts)
 - Credentials: Managed via Kubernetes Secrets
 
-# 5. Result App (Node.js)
+#### 5. Result App (Node.js)
 - Purpose: Frontend displaying real-time voting results
 - Port: 80
 - Flow: Reads from PostgreSQL → Displays results
 
-# 6. NGINX Ingress
+#### 6. NGINX Ingress
 - Purpose: Routes external traffic to internal services
 - Routes:
   - `/vote` → Vote service
   - `/result` → Result service
 
 
-# CI/CD Pipeline
+## CI/CD Pipeline
 The GitHub Actions pipeline automates the entire deployment process:
 Pipeline Steps:
 1. Trigger: Activates on push to main branch or manual dispatch
@@ -103,6 +104,6 @@ Pipeline Steps:
 5. Verify: Checks all deployments are healthy
 
 
-# Access points:
-    Vote: http://<INGRESS-HOSTNAME>/vote
-    Result: http://<INGRESS-HOSTNAME>/result
+## Access points:
+- Vote: http://<INGRESS-HOSTNAME>/vote
+- Result: http://<INGRESS-HOSTNAME>/result
