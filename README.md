@@ -4,7 +4,7 @@
 
 A microservices-based voting application deployed on Amazon EKS with automated CI/CD using GitHub Actions.
 
-
+----------------------------------------------------------
 ## Architecture Overview
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -30,7 +30,9 @@ A microservices-based voting application deployed on Amazon EKS with automated C
                     └─────────────┘     │     (DB)    │
                                         └─────────────┘
 ```
+----------------------------------------------------------
 
+----------------------------------------------------------
 ## Directory Structure
 ```
 .
@@ -55,8 +57,9 @@ A microservices-based voting application deployed on Amazon EKS with automated C
 │   └── Dockerfile                # Container image for worker service (created using the existing code in existing-code-repo)
 ├── .gitmodules                   # specifies that the existing-code-repo folder is itself a cloned repo from my Github account
 ```
+----------------------------------------------------------
 
-
+----------------------------------------------------------
 ## Components
 
 #### 1. Vote App (Python Flask)
@@ -91,8 +94,9 @@ A microservices-based voting application deployed on Amazon EKS with automated C
 - Routes:
   - `/vote` → Vote service
   - `/result` → Result service
+----------------------------------------------------------
 
-
+----------------------------------------------------------
 ## CI/CD Pipeline
 The GitHub Actions pipeline automates the entire deployment process:
 Pipeline Steps:
@@ -102,8 +106,10 @@ Pipeline Steps:
    - `latest` tag for current version
 4. Deploy: Updates Kubernetes deployments with new images
 5. Verify: Checks all deployments are healthy
+----------------------------------------------------------
 
-
-## Access points:
+----------------------------------------------------------
+## Access points
 - Vote: http://<INGRESS-HOSTNAME>/vote
 - Result: http://<INGRESS-HOSTNAME>/result
+----------------------------------------------------------
